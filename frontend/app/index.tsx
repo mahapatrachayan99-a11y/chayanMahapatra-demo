@@ -1,16 +1,30 @@
-import { Text, View, StyleSheet, Image } from "react-native";
-
-const EXPO_PUBLIC_BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../contexts/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function Index() {
-  console.log(EXPO_PUBLIC_BACKEND_URL, "EXPO_PUBLIC_BACKEND_URL");
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/auth/login');
+      }
+    }
+  }, [user, isLoading]);
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../assets/images/app-image.png")}
-        style={styles.image}
-      />
+      <View style={styles.iconContainer}>
+        <Ionicons name="gift" size={80} color="#FF69B4" />
+      </View>
+      <Text style={styles.title}>Petal Delivery</Text>
+      <Text style={styles.subtitle}>Loading...</Text>
     </View>
   );
 }
@@ -18,13 +32,21 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0c0c0c",
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
-  image: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "contain",
+  iconContainer: {
+    marginBottom: 24,
   },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#333',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+  }
 });
