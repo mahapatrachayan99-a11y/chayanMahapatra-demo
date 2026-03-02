@@ -29,7 +29,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://petal-delivery-2.preview.emergentagent.com';
+  const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+  if (!BACKEND_URL) {
+    throw new Error('EXPO_PUBLIC_BACKEND_URL is required');
+  }
 
   useEffect(() => {
     loadSession();
