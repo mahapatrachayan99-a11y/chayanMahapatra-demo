@@ -1,7 +1,10 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || 'https://petal-delivery-2.preview.emergentagent.com';
+const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+if (!BACKEND_URL) {
+  throw new Error('EXPO_PUBLIC_BACKEND_URL is required');
+}
 
 export const api = axios.create({
   baseURL: `${BACKEND_URL}/api`,
