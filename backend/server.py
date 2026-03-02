@@ -356,14 +356,17 @@ async def create_review(review: ReviewCreate, current_user: User = Depends(get_c
 @api_router.get("/wishlist")
 async def get_wishlist(current_user: User = Depends(get_current_user)):
     """Get user's wishlist"""
-    wishlist = await db.wishlist.find({"user_id": current_user.user_id}, {"_id": 0}).to_list(1000)
+    wishlist = await db.wishlist.find({" user_id": current_user.user_id}, {"_id": 0}).to_list(1000)
     
-    # Get product details
-    products = []
-    for item in wishlist:
-        product = await db.products.find_one({"product_id": item["product_id"]}, {"_id": 0})
-        if product:
-            products.append(product)
+    # Batch query for products to avoid N+1
+    product_ids = [item["product_id"] for item in wishlist]
+    if not product_ids:
+        return []
+    
+    products = await db.products.find(
+        {"product_id": {"$in": product_ids}, "is_active": True},
+        {"_id": 0}
+    ).to_list(1000)
     
     return products
 
