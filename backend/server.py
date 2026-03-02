@@ -540,9 +540,13 @@ async def get_analytics(current_user: User = Depends(get_admin_user)):
     # Total orders
     total_orders = await db.orders.count_documents({})
     
-    # Total revenue
-    orders = await db.orders.find({"payment_status": "completed"}, {"_id": 0}).to_list(10000)
-    total_revenue = sum(order["total_amount"] for order in orders)
+    # Total revenue using aggregation
+    revenue_pipeline = [
+        {"$match": {"payment_status": "completed"}},
+        {"$group": {"_id": None, "total_revenue": {"$sum": "$total_amount"}}}
+    ]
+    revenue_result = await db.orders.aggregate(revenue_pipeline).to_list(1)
+    total_revenue = revenue_result[0]["total_revenue"] if revenue_result else 0
     
     # Total products
     total_products = await db.products.count_documents({"is_active": True})
@@ -550,12 +554,12 @@ async def get_analytics(current_user: User = Depends(get_admin_user)):
     # Total users
     total_users = await db.users.count_documents({"role": "customer"})
     
-    # Orders by status
-    orders_by_status = {}
-    all_orders = await db.orders.find({}, {"_id": 0}).to_list(10000)
-    for order in all_orders:
-        status = order["order_status"]
-        orders_by_status[status] = orders_by_status.get(status, 0) + 1
+    # Orders by status using aggregation
+    status_pipeline = [
+        {"$group": {"_id": "$order_status", "count": {"$sum": 1}}}
+    ]
+    status_result = await db.orders.aggregate(status_pipeline).to_list(100)
+    orders_by_status = {item["_id"]: item["count"] for item in status_result}
     
     return {
         "total_orders": total_orders,
